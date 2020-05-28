@@ -1,5 +1,5 @@
 /* Copyright 2016 Mozilla Foundation
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,32 @@ import { extname, join } from 'path';
 import { WasmDisassembler } from "./src/WasmDis";
 import { BinaryReader } from "./src/WasmParser";
 
-const TEST_FOLDER = "./test";
+const { parseWat } = require("wabt")();
 
+const TEST_FOLDER = "./fixtures";
+const WASM_FEATURES = {bulk_memory: true, reference_types: true, sat_float_to_int: true, simd:true, tail_call:true, threads: true};
+
+// Run wabt over .out files.
 readdirSync(TEST_FOLDER)
-  .filter(fileName => extname(fileName) === ".wasm")
+  .filter(fileName => extname(fileName) === ".out")
+  .forEach(fileName => {
+    test(`${fileName}`, () => {
+      const filePath = join(TEST_FOLDER, fileName);
+      const wat = readFileSync(filePath, "utf8");
+      const module =  parseWat(fileName, wat, WASM_FEATURES);
+      module.resolveNames();
+      const { buffer } = module.toBinary({ write_debug_names: true });
+      let dis = new WasmDisassembler();
+      const reader = new BinaryReader();
+      reader.setData(buffer.buffer, 0, buffer.byteLength);
+      let out = dis.disassemble(reader);
+      expect(out).toBe(wat);
+    });
+  });
+
+/*
+readdirSync(TEST_FOLDER)
+  .filter(fileName => extname(fileName) === ".wasm.out")
   .forEach(fileName => {
     test(`${fileName}`, () => {
       const filePath = join(TEST_FOLDER, fileName);
@@ -61,3 +83,4 @@ for (const maxLines of [1, 3, 6, 7, 8, 20, 30, 32, 34, 35, 36, 37, 38, 39, 80]) 
     }
   });
 }
+*/
