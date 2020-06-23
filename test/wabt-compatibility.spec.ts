@@ -15,10 +15,10 @@
  */
 
 import { readdirSync, readFileSync } from "fs";
-import { extname, join } from "path";
-const { parseWat } = require("wabt")();
+import { extname } from "path";
+import { getFixturePathSync } from "jest-fixtures";
 
-const TEST_FOLDER = "./test";
+const { parseWat } = require("wabt")();
 
 const INCOMPATIBLE_FILE_NAMES = [
   "atomic.1.wasm.out",
@@ -58,7 +58,7 @@ const FEATURE_FLAGS_FOR_FILES = {
 };
 
 // Run wabt over .out files.
-readdirSync(TEST_FOLDER)
+readdirSync(getFixturePathSync(__dirname))
   .filter(
     (fileName) =>
       extname(fileName) === ".out" &&
@@ -66,7 +66,7 @@ readdirSync(TEST_FOLDER)
   )
   .forEach((fileName) => {
     test(`wabt ${fileName}`, () => {
-      const filePath = join(TEST_FOLDER, fileName);
+      const filePath = getFixturePathSync(__dirname, fileName);
       const data = new Uint8Array(readFileSync(filePath));
       // Always turn on 'threads' flag.
       const feature = { threads: true, ...FEATURE_FLAGS_FOR_FILES[fileName] };

@@ -15,17 +15,16 @@
  */
 
 import { readdirSync, readFileSync } from "fs";
-import { extname, join } from "path";
-import { WasmDisassembler } from "./src/WasmDis";
-import { BinaryReader } from "./src/WasmParser";
+import { extname } from "path";
+import { WasmDisassembler } from "../src/WasmDis";
+import { BinaryReader } from "../src/WasmParser";
+import { getFixturePathSync } from "jest-fixtures";
 
-const TEST_FOLDER = "./test";
-
-readdirSync(TEST_FOLDER)
+readdirSync(getFixturePathSync(__dirname))
   .filter((fileName) => extname(fileName) === ".wasm")
   .forEach((fileName) => {
     test(`${fileName}`, () => {
-      const filePath = join(TEST_FOLDER, fileName);
+      const filePath = getFixturePathSync(__dirname, fileName);
       const dis = new WasmDisassembler();
       const data = new Uint8Array(readFileSync(filePath));
       const parser = new BinaryReader();

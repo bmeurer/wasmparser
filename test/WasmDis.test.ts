@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { NameSectionReader, WasmDisassembler } from "./WasmDis";
-import { DevToolsNameGenerator } from "./WasmDis";
-import { BinaryReader } from "./WasmParser";
+import { NameSectionReader, WasmDisassembler } from "../src/WasmDis";
+import { DevToolsNameGenerator } from "../src/WasmDis";
+import { BinaryReader } from "../src/WasmParser";
 
 const { parseWat } = require("wabt")();
 
