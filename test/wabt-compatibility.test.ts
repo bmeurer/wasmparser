@@ -1,5 +1,5 @@
 /* Copyright 2016 Mozilla Foundation
- * Copyright 2019 Google LLC
+ * Copyright 2020 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,32 @@
  */
 
 import { readFileSync } from "fs";
-import { getWasmFixtures } from "./utils";
 import { WasmDisassembler } from "../src/WasmDis";
 import { BinaryReader } from "../src/WasmParser";
+import { getWasmFixtures } from "./utils";
+const { parseWat } = require("wabt")();
 
-describe("Parsing and disassembling", () => {
+const WABT_FEATURES = {
+  bulk_memory: true,
+  reference_types: true,
+  sign_extension: true,
+  simd: true,
+  sat_float_to_int: true,
+  tail_call: true,
+  threads: true,
+};
+
+describe("Disassembling", () => {
   describe.each(getWasmFixtures())("%s", (fileName, filePath) => {
-    test("generates expected output", () => {
+    test("generates wabt compatible text", () => {
+      // TODO(bmeurer): We need to update wabt here.
+      if (fileName === "atomic.1.wasm" || fileName === "threads.0.wasm") return;
       const data = new Uint8Array(readFileSync(filePath));
       const dis = new WasmDisassembler();
       const parser = new BinaryReader();
       parser.setData(data.buffer, 0, data.length);
       const text = dis.disassemble(parser);
-      expect(text).toMatchSnapshot();
+      expect(parseWat(fileName, text, WABT_FEATURES)).toBeDefined();
     });
   });
 });
